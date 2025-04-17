@@ -8,9 +8,12 @@ The Raspberry Pi 4 firmware does not support changing the gamma. See this issue:
 <br>
 But I really can't live without my blue light filter.
 <br><br>
-So as a workaround i made this script that utilizes Hyprland's built in shader functionallity. 
+So as a workaround I made this script that utilizes Hyprland's built in shader functionallity. 
 <br>
-I did not write the shader myself, it's stolen from here: https://github.com/hyprwm/Hyprland/issues/1140#issuecomment-133512843
+If you do not have this problem, you probably want to use [`hyprsunset`](https://wiki.hyprland.org/Hypr-Ecosystem/hyprsunset/) instead.
+<br>
+<br>
+I also did not write the shader myself, it's stolen from here: https://github.com/hyprwm/Hyprland/issues/1140#issuecomment-133512843
 <br>
 hyprsunder is merely a way to change the value of the shaders temperature and temperature strength variables.
 <br>
