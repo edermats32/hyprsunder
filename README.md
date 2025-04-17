@@ -1,6 +1,11 @@
 # hyprsunder
+![logo](hyprsunder.png)
+Logo font: [https://velvetyne.fr/fonts/facade/](https://velvetyne.fr/fonts/facade/)
+
 ## Background
 The Raspberry Pi 4 firmware does not support change the gamma. See this issue: https://github.com/raspberrypi/firmware/issues/1274
+<br>
+But I really can't live without my blue light filter.
 <br><br>
 So as a workaround i made this script that utilizes Hyprland's built in shader functionallity. 
 <br>
@@ -16,7 +21,7 @@ Some comments with *fake* variables are added to the shaderfile. These are used 
 // temperatureStrengthMem = 1.0;"
 // stateMem = on;"
 ```
-## Install
+## Installation
 Create this directory if you haven't already:
 ```sh
 mkdir $HOME/.local/bin
