@@ -4,12 +4,12 @@ precision highp float;
 varying vec2 v_texcoord;
 uniform sampler2D tex;
 
-const float temperature = 1200.0;
-const float temperatureStrength = 0.1;
+const float temperature = 2600.0;
+const float temperatureStrength = 1.0;
 
 // Memory values used by hyprsunder
-// temperatureMem = 1200.0;
-// temperatureStrengthMem = 0.1;
+// temperatureMem = 2600.0;
+// temperatureStrengthMem = 1.0;
 // stateMem = on;
 
 #define WithQuickAndDirtyLuminancePreservation
