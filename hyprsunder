@@ -1,0 +1,150 @@
+#!/bin/sh
+
+shaderFile=$HOME/.config/hypr/hyprsunder.glsl
+
+# _get_var [ <shader variable> ] --> { print shader variable }
+_get_var()
+{
+  sed -n "s/.*$1 *= *\([^;]*\);.*/\1/p" "$shaderFile"
+}
+
+# _set_var [ <shader variable> ] [ <new value> ] --> { change to shader variable }
+_set_var()
+{
+  sed -i "s/\($1 *= *\)[^;]*/\1$2/" $shaderFile
+}
+
+_toggle_on(){
+  temperatureMemValue=$(_get_var temperatureMem)
+  strengthMemValue=$(_get_var temperatureStrengthMem)
+  _set_var stateMem on
+  _set_var temperature $temperatureMemValue
+  _set_var temperatureStrength $strengthMemValue
+}
+
+_toggle_off() {
+  _set_var stateMem off
+  _set_var temperature 0.0
+  _set_var temperatureStrength 0.0
+}
+
+# _change [ <shader variable> | <toggle> ] [ <input value> ] --> { change to shaderfile }
+_change()
+{
+  shaderVar=$1      # Variable in shader-file that should change
+  inValue=$2        # Value passed in by user
+  state=$(_get_var stateMem) # if on/off
+
+  # Toggle logic
+  if [ $1 = "toggle" ]; then
+    case $inValue in
+      "on")
+        _toggle_on
+      ;;
+      "off")
+        _toggle_off
+      ;;
+      *)
+        [ $state = "on"  ] && _toggle_off
+        [ $state = "off" ] && _toggle_on
+      ;;
+    esac
+    # Refetch the state
+    state=$(_get_var stateMem)
+  fi
+
+  # Check if input value is appended by + or - and calculate new value accordingly
+  case $inValue in
+    +*|-*)
+      currentValue=$(_get_var $shaderVar)
+      newValue=$(printf "%.1f\n" $(echo "$currentValue$inValue" | bc)) # calculate inValue float
+      #(ex: $currentValue{1.2} $invalue{-0.2} --> 1.2-0.2=1.0 )
+    ;;
+    *)
+      newValue=$inValue # If not appended, just set newValue same as inputValue
+    ;;
+  esac
+
+  # Set the new value
+  _set_var $shaderVar\Mem $newValue
+  [ $state = "on" ] && _set_var $shaderVar $newValue
+}
+
+# Input param logic parsing
+while [ $# -gt 0 ]; do
+  case $1 in
+    -o|--toggle)
+      _change toggle $2
+      shift
+    ;;
+    -t|--temperature)
+      _change temperature $2
+      shift
+    ;;
+    -s|--strength)
+      _change temperatureStrength $2
+      shift
+    ;;
+    -p|--print)
+      loadShader="false"
+      echo "----------------------------------"
+      echo "Current Temperature: $(_get_var temperature)"
+      echo "Current Temperature Strength: $(_get_var temperatureStrength)"
+      echo
+      echo "Toggle State: $(_get_var stateMem)"
+      echo "Saved Temperature: $(_get_var temperatureMem)"
+      echo "Saved Temperature Strength: $(_get_var temperatureStrengthMem)"
+      echo "----------------------------------"
+      shift
+    ;;
+    -h|--help)
+      loadShader="false"
+      echo "-------------------------------------"
+      echo "Usage:"
+      echo "  -o | --toggle <on | off | empty>      Change the on/off state (toggle if empty)"
+      echo "  -t | --temperature [+/-]<float>       Change the temperature"
+      echo "  -s | --strength [+/-]<float>          Change the temperature strength"
+      echo "  -p | --print                          Print the current configuration"
+      echo "  -h | --help                           What you are currently looking at"
+      echo
+      echo "  If run without any parameters, it will just load the current configuration."
+      echo "-------------------------------------"
+      shift
+    ;;
+    *) shift ;;
+  esac
+done
+
+# If shaderfile was not found
+if [ ! -e $shaderFile ]; then
+  echo "--------------------------------------"
+  echo "Shaderfile not found!"
+  echo "Either edit the script and change the path to the shaderfile,"
+  echo "or put the shaderfile in the current path."
+  echo
+  echo "Current Shaderfile Path: $shaderFile"
+  echo "Script Path: $(realpath $0)"
+  echo
+  echo "If you don't have a copy of the shaderfile you have two options."
+  echo
+  echo " - Get it from the git-repo you got this script from:"
+  echo "   https://github.com/edermats32/hyprsunder/blob/main/hyprsunder.glsl"
+  echo
+  echo " - Download it from the orignal source:"
+  echo "   https://github.com/hyprwm/Hyprland/issues/1140#issuecomment-1335128437"
+  echo
+  echo " If you go with the latter option, you need to add these comments to"
+  echo " somewhere in the shaderfile:"
+  echo
+  echo "// Memory values used by hyprsunder"
+  echo "// temperatureMem = 2600.0;"
+  echo "// temperatureStrengthMem = 1.0;"
+  echo "// stateMem = on;"
+  echo "--------------------------------------"
+fi
+
+# Finally, load the shader-file
+if [ "$loadShader" != "false" ]; then
+  echo -n "hyprctl: "
+  hyprctl keyword decoration:screen_shader $shaderFile
+fi
